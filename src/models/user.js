@@ -14,11 +14,21 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,// Ensure spaces to be trimmed at start and end
+        validate(value) {
+            if(!validator.isEmail(value)){
+                throw new Error("Email is not valid"+ value );
+            }
+        } // Custom validation for email format
     },
     password: {
         type: String,
         minlength: 6,
         required: true,
+        validate(value) {
+            if(!validator.isStrongPassword(value)) {
+                throw new Error("Password is not strong enough");
+            }
+        } // Custom validation to ensure password does not contain the word 'password'
     },
     age: {
         type: Number,
@@ -35,6 +45,10 @@ const userSchema = new mongoose.Schema({
     photoUrl: {
         type: String,
         default: 'https://th.bing.com/th/id/OIP.w0TcjC4y9CxTrY3sitYa_AAAAA?rs=1&pid=ImgDetMain',
+        validate(value) {
+            if(!validator.isURL(value)){
+                throw new Error("Photo URL is not valid"+value);
+        }
     },
     about: {
         type: String,

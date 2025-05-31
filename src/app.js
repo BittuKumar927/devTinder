@@ -72,7 +72,19 @@ app.delete("/user", async (req, res) => {
 app.patch("/user", async (req, res) => {
     const userId = req.body.userId;
     const data = req.body;
+
     try{
+        const allowedUpdates = ["userId", 'lastName', 'password', 'age',"skills",'PhotoUrl'];
+
+        // Check if the provided data contains only allowed updates
+        const isUpdatesAllowed = Object.keys(data).every(key => allowedUpdates.includes(key));
+
+        if( !isUpdatesAllowed) {
+        res.status(400).send("Invalid updates provided");
+        }
+        if(data?.skills.length > 5) {
+            return res.status(400).send("Skills array cannot exceed 5 items");
+        }
         const user = await User.findByIdAndUpdate({_id:userId}, data,{
             returnDocument: 'after', // Return the updated document
             runValidators: true // Ensure that the update respects the schema validation
