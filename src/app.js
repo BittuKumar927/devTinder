@@ -1,23 +1,68 @@
 const express = require('express');
 
 const connectDB = require("./config/database.js");
+const { validateSignUpData } = require("./utils/validation.js");
 const User = require("./models/user.js");
 const app = express();
-
+const validator = require('validator'); // Import validator for validation
+const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
+ 
 app.use(express.json());
 
+//signup route
 app.post("/signup", async (req, res) => {
-
-    console.log("Received request to /signup with body:", req.body);
-
-    const user = new User(req.body);
-
+    //Validation of data
     try{
-    await user.save();
-    res.send("User added successfully");
-    } catch(err) {
-        console.error("Error saving user:", err);
-        res.status(500).send("Error saving user");
+        validateSignUpData(req);
+        const { firstName, lastName, email, password, age, gender, skills } = req.body;
+
+    //encrypt password
+        const passwordHash = await bcrypt.hash(req.body.password, 10); 
+
+    //creating the user
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            password: passwordHash,
+            gender,
+            age});
+        await user.save();
+        res.send("User added successfully");
+
+    }catch (err) {
+        console.error("Validation error:", err.message);
+        return res.status(400).send(err.message);
+    }
+});
+
+//Login route
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        //validation of email
+        if(validator.isEmail(email) === false) {
+            return res.status(400).send("Email is not valid");
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).send("Invalid credentials");
+        }
+
+        //password validation
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).send("Invalid credentials");
+        }
+        // If everything is valid, send success response
+        res.send("Login successful");
+
+    } catch (err) {
+        console.error("Error during login:", err);
+        return res.status(500).send("Internal server error");
     }
 });
 

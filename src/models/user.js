@@ -1,66 +1,71 @@
 const mongoose = require('mongoose');
+const validator = require('validator'); // ✅ import validator
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     firstName: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     lastName: {
-        type: String,
+      type: String,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,// Ensure spaces to be trimmed at start and end
-        validate(value) {
-            if(!validator.isEmail(value)){
-                throw new Error("Email is not valid"+ value );
-            }
-        } // Custom validation for email format
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error('Email is not valid: ' + value);
+        }
+      },
     },
     password: {
-        type: String,
-        minlength: 6,
-        required: true,
-        validate(value) {
-            if(!validator.isStrongPassword(value)) {
-                throw new Error("Password is not strong enough");
-            }
-        } // Custom validation to ensure password does not contain the word 'password'
+      type: String,
+      minlength: 6,
+      required: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error('Password is not strong enough');
+        }
+      },
     },
     age: {
-        type: Number,
-        minlength: 18,
+      type: Number,
+      min: 18, // ✅ fix: use `min` for numbers
     },
     gender: {
-        type: String,
-        validate(value){
-            if(!["male","female","others"].includes(value)){
-                throw new Error("Gender data is not valid");
-            }
-        },//this is only called when entering new data in the databsse if correcting will not work like patch will not work.
+      type: String,
+      validate(value) {
+        if (!['male', 'female', 'others'].includes(value)) {
+          throw new Error('Gender data is not valid');
+        }
+      },
     },
     photoUrl: {
-        type: String,
-        default: 'https://th.bing.com/th/id/OIP.w0TcjC4y9CxTrY3sitYa_AAAAA?rs=1&pid=ImgDetMain',
-        validate(value) {
-            if(!validator.isURL(value)){
-                throw new Error("Photo URL is not valid"+value);
+      type: String,
+      default:
+        'https://th.bing.com/th/id/OIP.w0TcjC4y9CxTrY3sitYa_AAAAA?rs=1&pid=ImgDetMain',
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error('Photo URL is not valid: ' + value);
         }
+      },
     },
     about: {
-        type: String,
-        default: 'Default decription provided',
+      type: String,
+      default: 'Default description provided',
     },
     skills: {
-        type: [String],
+      type: [String],
     },
-},{
-    timestamps: true, // Automatically manage createdAt and updatedAt fields
-});
+  },
+  {
+    timestamps: true, // ✅ Auto createdAt and updatedAt
+  }
+);
 
 const User = mongoose.model('User', userSchema);
-
 module.exports = User;
