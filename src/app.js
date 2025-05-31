@@ -21,6 +21,36 @@ app.post("/signup", async (req, res) => {
     }
 });
 
+//Get user by email
+app.get("/user",async (req, res) => {
+    const userEmail = req.body.email;
+    try {
+        const user = await User.findOne({email: userEmail});
+        if (user.length === 0) {
+            res.status(404).send("User not found");
+        }else{
+            res.send(user);
+        }
+    }catch(err) {
+        console.error("Error fetching user:", err);
+        res.status(500).send("Error fetching user");
+    }
+});
+
+//feed api for to get all users from database
+app.get("/feed", async (req, res) => {
+try {
+        const users = await User.find({});
+        if (users.length === 0) {
+            res.status(404).send("No users found");
+        } else {
+            res.send(users);
+        }
+    } catch (err) {
+        console.error("Error fetching users:", err);
+    }
+    
+});
 
 connectDB().then(() => {
     console.log("Connected to MongoDB successfully");
