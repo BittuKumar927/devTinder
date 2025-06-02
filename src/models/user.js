@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator'); // ✅ import validator
+const jwt = require('jsonwebtoken'); // ✅ Import jwt here to avoid circular dependency issues
+const bcrypt = require('bcrypt'); // ✅ Import bcrypt for password hashing
+// ✅ Use mongoose to define the user schema
 
 const userSchema = new mongoose.Schema(
   {
@@ -66,6 +69,28 @@ const userSchema = new mongoose.Schema(
     timestamps: true, // ✅ Auto createdAt and updatedAt
   }
 );
+
+userSchema.methods.getJWT = async function () {
+  const user = this; // ✅ Use `this` to refer to the current user instance
+  const token = jwt.sign({ _id: user._id}, 'DEV@Tinder@2343', {
+    expiresIn: '7d',
+  });
+  return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+  const user = this; // ✅ Use `this` to refer to the current user instance
+
+  const passwordHash = user.password;
+
+  const isPasswordValid = await bcrypt.compare(
+    passwordInputByUser,
+    passwordHash
+  );
+
+  return isPasswordValid;
+
+}
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
