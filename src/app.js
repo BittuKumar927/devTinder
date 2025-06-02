@@ -1,100 +1,25 @@
 const express = require('express');
 
 const connectDB = require("./config/database.js");
-const { validateSignUpData } = require("./utils/validation.js");
+
 const User = require("./models/user.js");
 const app = express();
-const validator = require('validator'); // Import validator for validation
-const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
-const cookieParser = require('cookie-parser'); // Import cookie-parser for handling cookies
-const {  userAuth } = require("./middlewares/auth.js"); // Import authentication middlewares
-
-const jwt = require('jsonwebtoken'); // Import jsonwebtoken for token handling
-
 
 app.use(express.json());
 app.use(cookieParser()); // Use cookie-parser middleware to parse cookies 
 
-//signup route
-app.post("/signup", async (req, res) => {
-    //Validation of data
-    try{
-        validateSignUpData(req);
-        const { firstName, lastName, email, password, age, gender, skills } = req.body;
+const authRouter = require("./routes/auth.js");
+const requestRouter = require("./routes/requests.js");
+const profileRouter = require("./routes/profile.js");
 
-    //encrypt password
-        const passwordHash = await bcrypt.hash(req.body.password, 10); 
+app.use("/", authRouter);
+app.use("/", requestRouter);
+app.use("/", profileRouter);
 
-    //creating the user
-        const user = new User({
-            firstName,
-            lastName,
-            email,
-            password: passwordHash,
-            gender,
-            age});
-        await user.save();
-        res.send("User added successfully");
 
-    }catch (err) {
-        console.error("Validation error:", err.message);
-        return res.status(400).send(err.message);
-    }
-});
 
-//Login route
-app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
 
-    try {
-        //validation of email
-        if(validator.isEmail(email) === false) {
-            return res.status(400).send("Email is not valid");
-        }
 
-        // Find user by email
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return res.status(404).send("Invalid credentials");
-        }
-
-        //password validation
-        const isPasswordValid = await user.validatePassword(password);
-        if (!isPasswordValid) {
-            return res.status(401).send("Invalid credentials");
-        }
-        // If everything is valid, send success response
-
-        // You can also generate a token here if you are using JWT for authentication
-        //Create a JWT token
-
-        const token = await user.getJWT();
-        console.log("Token generated:", token);
-
-        //set the token in a cookie
-        res.cookie("token", token); // Set the token in a cookie with httpOnly and secure flags
-
-        res.send("Login successful");
-
-    } catch (err) {
-        console.error("Error during login:", err);
-        return res.status(500).send("Internal server error");
-    }
-});
-
-//Get user profile
-app.get("/profile", userAuth, async (req, res) => {
-    const user=req.user; // Assuming user is attached to req by userAuth middleware
-    res.send(user);
-    
-});
-
-//send connection request
-app.post("/sendconnectionrequest", userAuth, async (req, res) => {
-    console.log("Connection request received");
-
-    res.send("Connection request sent successfully");
-});
 
 //Get user by email
 app.get("/user",async (req, res) => {
