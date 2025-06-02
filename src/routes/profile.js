@@ -39,6 +39,28 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     }
 });
     
+profileRouter.patch("/profile/password", userAuth, async (req, res) => {
+    const user = req.user; // Assuming user is attached to req by userAuth middleware
+    const { oldPassword, newPassword } = req.body;
 
+    try {
+        // Validate old password
+        const isOldPasswordValid = await user.validatePassword(oldPassword);
+        if (!isOldPasswordValid) {
+            return res.status(401).send("Old password is incorrect");
+        }
+
+        // Hash the new password
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+        user.password = newPasswordHash; // Update the user's password
+
+        await user.save(); // Save the updated user
+
+        res.send("Password updated successfully");
+    } catch (err) {
+        console.error("Error updating password:", err.message);
+        return res.status(400).send(err.message);
+    }
+});
 
 module.exports = profileRouter;
