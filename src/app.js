@@ -6,8 +6,14 @@ const User = require("./models/user.js");
 const app = express();
 const validator = require('validator'); // Import validator for validation
 const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
- 
+const cookieParser = require('cookie-parser'); // Import cookie-parser for handling cookies
+const {  userAuth } = require("./middlewares/auth.js"); // Import authentication middlewares
+
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken for token handling
+
+
 app.use(express.json());
+app.use(cookieParser()); // Use cookie-parser middleware to parse cookies 
 
 //signup route
 app.post("/signup", async (req, res) => {
@@ -58,12 +64,36 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("Invalid credentials");
         }
         // If everything is valid, send success response
+
+        // You can also generate a token here if you are using JWT for authentication
+        //Create a JWT token
+
+        const token = await jwt.sign({_id: user._id}, "DEV@Tinder@2343");
+        console.log("Token generated:", token);
+
+        //set the token in a cookie
+        res.cookie("token", token);
+
         res.send("Login successful");
 
     } catch (err) {
         console.error("Error during login:", err);
         return res.status(500).send("Internal server error");
     }
+});
+
+//Get user profile
+app.get("/profile", userAuth, async (req, res) => {
+    const user=req.user; // Assuming user is attached to req by userAuth middleware
+    res.send(user);
+    
+});
+
+//send connection request
+app.post("/sendconnectionrequest", userAuth, async (req, res) => {
+    console.log("Connection request received");
+
+    res.send("Connection request sent successfully");
 });
 
 //Get user by email
