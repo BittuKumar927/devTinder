@@ -68,11 +68,11 @@ app.post("/login", async (req, res) => {
         // You can also generate a token here if you are using JWT for authentication
         //Create a JWT token
 
-        const token = await jwt.sign({_id: user._id}, "DEV@Tinder@2343");
+        const token = await jwt.sign({_id: user._id}, "DEV@Tinder@2343",{expiresIn: "7d"}, ); // Sign the token with a secret key and set an expiration time
         console.log("Token generated:", token);
 
         //set the token in a cookie
-        res.cookie("token", token);
+        res.cookie("token", token, {expires: "7d"}); // Set the token in a cookie with httpOnly and secure flags
 
         res.send("Login successful");
 
