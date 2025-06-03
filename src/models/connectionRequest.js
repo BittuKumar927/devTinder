@@ -19,6 +19,10 @@ const connectionRequestSchema = new mongoose.Schema({
     timestamps: true
 });
 
+connectionRequestSchema.index({ formUserId: 1, toUserId : 1});// Create a compound index on formUserId and toUserId for faster lookups
+
+
+
 connectionRequestSchema.pre('save', function(next){
     const connectionRequest = this;
 

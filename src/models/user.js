@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
+      index: true, // ✅ Add index for faster search
     },
     lastName: {
       type: String,
@@ -69,6 +70,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true, // ✅ Auto createdAt and updatedAt
   }
 );
+
+userSchema.index({ firstName: 1, lastName: 1 }); // ✅ Create a compound index on firstName and lastName for faster lookups
 
 userSchema.methods.getJWT = async function () {
   const user = this; // ✅ Use `this` to refer to the current user instance
