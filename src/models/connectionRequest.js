@@ -28,7 +28,7 @@ connectionRequestSchema.index({ formUserId: 1, toUserId : 1});// Create a compou
 connectionRequestSchema.pre('save', function(next){
     const connectionRequest = this;
 
-    //fromUserId and toUserId should not be the same
+    //formUserId and toUserId should not be the same
     if (connectionRequest.formUserId.toString() === connectionRequest.toUserId.toString()) {
         throw new Error("You cannot send a connection request to yourself");
     }

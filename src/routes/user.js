@@ -70,4 +70,47 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     }
 });
 
+//Feed
+userRouter.get("/feed", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+
+        // Find all users except the logged-in user
+        // 0. his own card
+        // 1. his connections
+        // 2. ignoreed people
+        // 3. already sent connection requests
+
+        // Find all connection requests (sent + received)
+        const connectionRequests = await ConnectionRequest.find({
+            $or: [
+                { formUserId: loggedInUser._id },
+                { toUserId: loggedInUser._id }
+            ]
+        }).select("formUserId toUserId");
+
+        //hide thes users
+        const hideUserFromFeed = new Set();
+        connectionRequests.forEach((request) => {
+            hideUserFromFeed.add(request.formUserId.toString());
+            hideUserFromFeed.add(request.toUserId.toString());
+        });
+        console.log("Users to hide from feed:", hideUserFromFeed);
+
+        const users = await User.find({
+            $and:[{
+            _id: { $nin: Array.from(hideUserFromFeed) }}, // Exclude users in the hideUserFromFeed set
+                { _id: { $ne: loggedInUser._id } // Exclude the logged-in user
+            }]
+        }).select(USER_SAFE_DATA); // Select only safe data to return
+
+        res.json({
+            message: "Feed fetched successfully",
+            data: users
+        });
+    } catch (err) {
+        console.error("Error fetching feed:", err.message);
+        return res.status(500).send("Error fetching feed");
+    }
+});
 module.exports = userRouter;

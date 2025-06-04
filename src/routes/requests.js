@@ -9,7 +9,7 @@ const requestRouter = express.Router();
 requestRouter.post("/request/send/:status/:touserId", userAuth, async (req, res) => {
     try{
 
-        const fromUserId = req.user._id; // Get the ID of the user making the request
+        const formUserId = req.user._id; // Get the ID of the user making the request
 
         const toUserId = req.params.touserId; // Get the ID of the user to whom the request is being sent
 
@@ -24,8 +24,8 @@ requestRouter.post("/request/send/:status/:touserId", userAuth, async (req, res)
         // check if there is already a connection request between the two users
         const existingConnectionRequest = await ConnectionRequest.findOne({
             $or: [
-                { formUserId: fromUserId, toUserId: toUserId },
-                { formUserId: toUserId, toUserId: fromUserId }
+                { formUserId: formUserId, toUserId: toUserId },
+                { formUserId: toUserId, toUserId: formUserId }
             ]
         });
 
@@ -42,7 +42,7 @@ requestRouter.post("/request/send/:status/:touserId", userAuth, async (req, res)
 
 
         const connectionRequest = new ConnectionRequest({
-            formUserId: fromUserId,
+            formUserId: formUserId,
             toUserId: toUserId,
             status: status
         });
