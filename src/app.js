@@ -11,11 +11,12 @@ app.use(cookieParser()); // Use cookie-parser middleware to parse cookies
 const authRouter = require("./routes/auth.js");
 const requestRouter = require("./routes/requests.js");
 const profileRouter = require("./routes/profile.js");
+const userRouter = require("./routes/user.js");
 
 app.use("/", authRouter);
 app.use("/", requestRouter);
 app.use("/", profileRouter);
-
+app.use("/", userRouter);
 
 
 
