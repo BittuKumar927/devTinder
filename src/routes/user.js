@@ -75,6 +75,11 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
 
+        const page = parseInt(req.query.page) || 1; // Get the page number from query params, default to 1
+
+        let limit = parseInt(req.query.limit) || 10; // Get the limit from query params, default to 10
+        limit = limit > 50 ? 50 : limit;
+
         // Find all users except the logged-in user
         // 0. his own card
         // 1. his connections
@@ -102,7 +107,9 @@ userRouter.get("/feed", userAuth, async (req, res) => {
             _id: { $nin: Array.from(hideUserFromFeed) }}, // Exclude users in the hideUserFromFeed set
                 { _id: { $ne: loggedInUser._id } // Exclude the logged-in user
             }]
-        }).select(USER_SAFE_DATA); // Select only safe data to return
+        }).select(USER_SAFE_DATA)
+        .skip((page-1) * limit) // Skip the number of documents based on the page number
+        .limit(limit); // Select only safe data to return
 
         res.json({
             message: "Feed fetched successfully",
